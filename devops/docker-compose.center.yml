@@ -1,0 +1,13 @@
+version: '3'
+services:
+  #消息中心
+  dev-bus-server:
+    image: cike/bus-server:latest
+    restart: always
+    networks:
+      - sc-net
+    ports:
+      - 8071:8071
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai

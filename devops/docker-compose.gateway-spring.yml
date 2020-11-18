@@ -1,0 +1,25 @@
+version: '3'
+services:
+  #网关服务
+  dev-gateway-web:
+    image: cike/gateway-web:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8443:8443
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+
+  #网关管理服务
+  dev-gateway-admin:
+    image: cike/gateway-admin:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8445:8445
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai

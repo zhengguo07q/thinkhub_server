@@ -1,0 +1,87 @@
+version: '3'
+services:
+  dev-zipkin-server:
+    image: openzipkin/zipkin
+    restart: always
+    volumes:
+      - ./data/zipkin-server/logs:/var/logs
+    networks:
+      - sc-net
+    ports:
+      - 9411:9411
+    environment:
+      - RABBIT_ADDRESSES=ds-rabbitmq:5672
+      - RABBIT_MQ_PORT=5672
+      - RABBIT_PASSWORD=guest
+      - RABBIT_USER=guest
+      - STORAGE_TYPE=elasticsearch
+      - ES_HOSTS=http://dev-elasticsearch:9200
+    depends_on:
+      - ds-rabbitmq
+
+  dev-elasticsearch:
+    image: elasticsearch:5.6-alpine
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - node.name=elasticsearch_node_1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./data/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./data/elasticsearch/logs:/usr/share/elasticsearch/logs
+      - ./config/devops/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    networks:
+      - sc-net
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  dev-skywalking-oap:
+    image: wutang/skywalking-oap:6.1.0
+    networks:
+      - sc-net
+    depends_on:
+      - dev-elasticsearch
+    links:
+      - dev-elasticsearch
+    restart: always
+    ports:
+      - 11800:11800
+      - 12800:12800
+    volumes:
+      - ./config/devops/skywalking/config:/apache-skywalking-apm-bin/config:ro
+
+  dev-skywalking-ui:
+    image: wutang/skywalking-ui:6.1.0
+    networks:
+      - sc-net
+    depends_on:
+      - dev-skywalking-oap
+    links:
+      - dev-skywalking-oap
+    restart: always
+    ports:
+      - 8080:8080
+    environment:
+      collector.ribbon.listOfServers: dev-skywalking-oap:12800
+
+  dev-kibana:
+    image: kibana:5.6.14
+    restart: always
+    volumes:
+      - ./data/kibana/logs:/var/logs/kibana
+      - ./config/devops/kibana.yml:/etc/kibana/kibana.yml
+    networks:
+      - sc-net
+    ports:
+      - 5601:5601
+    depends_on:
+      - dev-elasticsearch
+

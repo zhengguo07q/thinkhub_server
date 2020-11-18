@@ -1,0 +1,41 @@
+version: '3'
+services:
+  #授权服务
+  dev-authorization-server:
+    image: cike/authorization-server:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8000:8000
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      - dev-authentication-server
+
+  #认证服务
+  dev-authentication-server:
+    image: cike/authentication-server:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8001:8001
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      - svr-organization
+
+  #组织服务
+  svr-organization:
+    image: cike/organization:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8010:8010
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai

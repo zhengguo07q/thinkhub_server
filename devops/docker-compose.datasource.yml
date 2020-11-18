@@ -1,0 +1,76 @@
+version: '3'
+services:
+  ds-redis:
+    image: redis:alpine
+    container_name: ds-redis
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    environment:
+      - REDIS_PASSWORD=123456
+    networks:
+      - sc-net
+    ports:
+      - 6379:6379
+    env_file: .env
+
+
+
+  ds-rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: ds-rabbitmq
+    restart: always
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq/mnesia
+    networks:
+      - sc-net
+    ports:
+      - 5672:5672
+      - 15672:15672
+    env_file: .env
+
+  ds-neo4j:
+    image: neo4j:3.5.5
+    container_name: ds-neo4j
+    volumes:
+      - ./config/datasource/neo4j/conf:/var/lib/neo4j/conf
+      - ./data/neo4j:/data
+      - ./logs/neo4j:/var/lib/neo4j/logs
+    restart: always
+    ports:
+      - 7474:7474
+      - 7687:7687
+    networks:
+      - sc-net
+    env_file: .env
+
+  ds-mysql:
+    image: mysql:5.7
+    container_name: ds-mysql
+    restart: always
+    networks:
+      - sc-net
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: root123
+
+  ds-mysql-init:
+    image: mysql:5.7
+    command: /init-db.sh
+    networks:
+      - sc-net
+    volumes:
+      - ../component/auth/db:/sql/auth
+      - ../component/gateway/gateway-admin/src/main/db:/sql/gateway
+      - ../service/organization/db:/sql/organization
+      - ./init-db.sh:/init-db.sh
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+
+networks:
+  sc-net:
+    external: false

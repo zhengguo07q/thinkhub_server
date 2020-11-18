@@ -1,0 +1,39 @@
+version: '3'
+services:
+  dev-nacos:
+    image: nacos/nacos-server:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+    volumes:
+      - ./data/nacos-server/logs/:/home/nacos/logs
+      - ./config/nacos/init.d/custom.properties:/home/nacos/init.d/custom.properties
+    ports:
+      - "8848:8848"
+      - "9555:9555"
+
+  dev-prometheus:
+    container_name: dev-prometheus
+    image: prom/prometheus:latest
+    networks:
+      - sc-net
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - dev-nacos
+    restart: on-failure:3
+
+  dev-grafana:
+    image: grafana/grafana
+    restart: on-failure:3
+    volumes:
+      - ./data/grafana/logs:/var/logs/grafana
+    networks:
+      - sc-net
+    ports:
+      - 3000:3000

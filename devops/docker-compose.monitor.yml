@@ -1,0 +1,48 @@
+version: '3'
+services:
+  #监控管理台服务
+  dev-monitor-admin:
+    image: cike/bootadmin:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8022:8022
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+
+  dev-sentinel-dashboard:
+    image: cike/sentinel-dashboard-docker:latest
+    restart: on-failure:3
+    networks:
+      - sc-net
+    ports:
+      - 8021:8021
+    env_file: .env
+
+  #MOSS Mysql数据库初使化
+  ds-moss-db-init:
+    image: mysql:5.7
+    command: /init-db.sh
+    networks:
+      - sc-net
+    volumes:
+      - ./config/moss/mysql:/sql
+      - ./init-db.sh:/init-db.sh
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+
+  #Moss管理中心
+  dev-moss:
+    image: w304807481/moss-web:latest
+    restart: always
+    networks:
+      - sc-net
+    ports:
+      - 8086:8086
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      - ds-moss-db-init

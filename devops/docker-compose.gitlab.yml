@@ -1,0 +1,30 @@
+version: '3'
+services:
+  devops-gitlab:
+    image: 'twang2218/gitlab-ce-zh'
+    container_name: "devops-gitlab"
+    restart: unless-stopped
+    privileged: true
+    environment:
+      TZ: 'Asia/Shanghai'
+      GITLAB_OMNIBUS_CONFIG: |
+        gitlab_rails['time_zone'] = 'Asia/Shanghai'
+        gitlab_rails['smtp_enable'] = true
+        gitlab_rails['smtp_address'] = "smtp.aliyun.com"
+        gitlab_rails['smtp_port'] = 465
+        gitlab_rails['smtp_user_name'] = "gary85938406@aliyun.com"  #用自己的aliyun邮箱
+        gitlab_rails['smtp_password'] = "hjwan817"
+        gitlab_rails['smtp_domain'] = "aliyun.com"
+        gitlab_rails['smtp_authentication'] = "login"
+        gitlab_rails['smtp_enable_starttls_auto'] = true
+        gitlab_rails['smtp_tls'] = true
+        gitlab_rails['gitlab_email_from'] = 'gary85938406@aliyun.com'
+        gitlab_rails['gitlab_shell_ssh_port'] = 1022
+    volumes:
+      - /etc/gitlab/:/etc/gitlab/
+      - /var/log/gitlab/:/var/log/gitlab/
+      - /var/opt/gitlab/:/var/opt/gitlab/
+    ports:
+      - '1080:80'
+      - '1443:443'
+      - '1022:22'
